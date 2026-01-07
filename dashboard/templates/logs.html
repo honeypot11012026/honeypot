@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ===============================
+     ACTION BAR (SEARCH + EXPORT)
+================================ -->
+<div class="chart-container-wrapper">
+  <div class="chart-container table-actions">
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search IP..."
+      class="table-search"
+    >
+
+    <button class="export-btn" onclick="exportTable()">
+      Export CSV
+    </button>
+
+  </div>
+</div>
+
+<!-- ===============================
+     LOGS TABLE
+================================ -->
+<div class="chart-container-wrapper">
+  <div class="chart-container table-container">
+
+    {% if rows %}
+
+    <!-- ================= HTTP TABLE ================= -->
+    {% if active == "http" %}
+    <table id="honeypotTable">
+      <thead>
+        <tr>
+          <th>IP</th>
+          <th>Pages</th>
+          <th>Attack Types</th>
+          <th>Sessions</th>
+          <th>Inputs / Payloads</th>
+          <th>Last Seen</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="mono">{{ r.ip }}</td>
+
+          <td>
+            {% for p in r.pages %}
+              <div class="cmd">{{ p }}</div>
+            {% endfor %}
+          </td>
+
+          <td>
+            {% for a in r.attack_types %}
+              <span class="sev {{ r.severity|lower }}">{{ a }}</span>
+            {% endfor %}
+          </td>
+
+          <td>{{ r.sessions }}</td>
+
+          <td class="mono">
+            {% for i in r.inputs %}
+              <div class="cmd">{{ i }}</div>
+            {% endfor %}
+          </td>
+
+          <td>{{ r.last_seen }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- ================= SSH / FTP TABLE ================= -->
+    {% else %}
+    <table id="honeypotTable">
+      <thead>
+        <tr>
+          <th>IP</th>
+          <th>Country</th>
+          <th>Severity</th>
+
+          {% if active == "ftp" %}
+            <th>Username</th>
+            <th>Password</th>
+          {% endif %}
+
+          <th>Sessions</th>
+          <th>Commands</th>
+          <th>Last Seen</th>
+          <th>Last Commands</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="mono">{{ r.ip }}</td>
+          <td>{{ r.country }}</td>
+
+          <td>
+            <span class="sev {{ r.severity|lower }}">
+              {{ r.severity }}
+            </span>
+          </td>
+
+          {% if active == "ftp" %}
+            <td class="mono">{{ r.username }}</td>
+            <td class="mono">{{ r.password }}</td>
+          {% endif %}
+
+          <td>{{ r.sessions }}</td>
+          <td>{{ r.commands }}</td>
+          <td>{{ r.last_seen }}</td>
+
+          <td class="mono">
+            {% for c in r.last_commands %}
+              <div class="cmd">{{ c }}</div>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% else %}
+      <p>No data available.</p>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- ===============================
+     SEARCH + EXPORT JS
+================================ -->
+<script>
+/* SEARCH */
+document.getElementById("searchInput").addEventListener("keyup", function () {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll("#honeypotTable tbody tr");
+
+  rows.forEach(row => {
+    const ip = row.cells[0].innerText.toLowerCase();
+    row.style.display = ip.includes(filter) ? "" : "none";
+  });
+});
+
+/* EXPORT CSV */
+function exportTable() {
+  let csv = [];
+  const rows = document.querySelectorAll("#honeypotTable tr");
+
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("td, th");
+    let rowData = [];
+    cols.forEach(col => {
+      rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+    });
+    csv.push(rowData.join(","));
+  });
+
+  const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "honeypot_logs.csv";
+  a.click();
+}
+</script>
+
+<!-- ===============================
+     AUTO REFRESH TABLE
+================================ -->
+<script>
+  setTimeout(() => {
+    window.location.reload();
+  }, 7000);
+</script>
+
+{% endblock %}

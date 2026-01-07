@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+
+   
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body class="admin">
+
+    <div id="sign-up">
+
+        <form method="post" action="{{ url_for('admin') }}">
+            <h1>Admin</h1>
+
+            <fieldset class="top">
+                <label><i>👤</i></label>
+                <input type="text" name="username" placeholder="Username" autocomplete="off"  required>
+            </fieldset>
+
+            <fieldset>
+                <label><i>🔒</i></label>
+                <input type="password" name="password" placeholder="Password"  autocomplete="new-password"  required>
+            </fieldset>
+
+            <button type="submit">Login</button>
+
+            <a href="{{ url_for('index') }}" class="exit-btn">✖ Exit</a>
+        </form>
+
+        <img src="{{ url_for('static', filename='mony.png') }}" alt="money">
+
+    </div>
+
+</body>
+</html>
+
